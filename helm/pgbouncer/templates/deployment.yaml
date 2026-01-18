@@ -65,6 +65,45 @@ spec:
           volumeMounts:
             - name: pgbouncer-userlist
               mountPath: /etc/pgbouncer_temp/
+        {{- if .Values.exporter.enabled }}
+        - name: pgbouncer-exporter
+          image: "{{ .Values.exporter.image.repository }}:{{ .Values.exporter.image.tag }}"
+          imagePullPolicy: {{ .Values.exporter.image.pullPolicy }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.exporter.port }}
+              protocol: TCP
+          args:
+            - "--web.listen-address=0.0.0.0:{{ .Values.exporter.port }}"
+            {{- if .Values.exporter.pgbouncer.password }}
+            - "--pgBouncer.connectionString=postgres://{{ .Values.exporter.pgbouncer.user }}:{{ .Values.exporter.pgbouncer.password }}@{{ .Values.exporter.pgbouncer.host }}:{{ .Values.exporter.pgbouncer.port }}/{{ .Values.exporter.pgbouncer.database }}"
+            {{- else }}
+            - "--pgBouncer.connectionString=postgres://{{ .Values.exporter.pgbouncer.user }}@{{ .Values.exporter.pgbouncer.host }}:{{ .Values.exporter.pgbouncer.port }}/{{ .Values.exporter.pgbouncer.database }}"
+            {{- end }}
+            {{- range .Values.exporter.extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.exporter.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.exporter.port }}
+            successThreshold: {{ .Values.exporter.livenessProbe.successThreshold }}
+            failureThreshold: {{ .Values.exporter.livenessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.exporter.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.exporter.livenessProbe.timeoutSeconds }}
+            initialDelaySeconds: {{ .Values.exporter.livenessProbe.initialDelaySeconds }}
+          readinessProbe:
+            httpGet:
+              path: /
+              port: {{ .Values.exporter.port }}
+            successThreshold: {{ .Values.exporter.readinessProbe.successThreshold }}
+            failureThreshold: {{ .Values.exporter.readinessProbe.failureThreshold }}
+            periodSeconds: {{ .Values.exporter.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.exporter.readinessProbe.timeoutSeconds }}
+            initialDelaySeconds: {{ .Values.exporter.readinessProbe.initialDelaySeconds }}
+        {{- end }}
       volumes:
         - name: pgbouncer-userlist
           configMap: 
