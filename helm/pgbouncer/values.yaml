@@ -166,6 +166,7 @@ exporter:
     database: pgbouncer
     user: admin
     password: "admin"
+    sslmode: "disable"
   extraArgs: []
   resources: {}
     # limits:

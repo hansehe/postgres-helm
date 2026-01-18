@@ -3,7 +3,7 @@ build:
         helm:
             directory: helm
             cmd: 
-                - helm template postgres
+                # - helm template postgres
                 - helm template pgbouncer
 
 publish:
@@ -11,9 +11,9 @@ publish:
         helm:
             directory: helm
             cmd: 
-                - helm template postgres
-                - helm package postgres --destination charts/postgres
-                - helm repo index ./charts/postgres
+                # - helm template postgres
+                # - helm package postgres --destination charts/postgres
+                # - helm repo index ./charts/postgres
                 - helm template pgbouncer
                 - helm package pgbouncer --destination charts/pgbouncer
                 - helm repo index ./charts/pgbouncer

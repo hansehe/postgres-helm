@@ -76,9 +76,11 @@ spec:
           args:
             - "--web.listen-address=0.0.0.0:{{ .Values.exporter.port }}"
             {{- if .Values.exporter.pgbouncer.password }}
-            - "--pgBouncer.connectionString=postgres://{{ .Values.exporter.pgbouncer.user }}:{{ .Values.exporter.pgbouncer.password }}@{{ .Values.exporter.pgbouncer.host }}:{{ .Values.exporter.pgbouncer.port }}/{{ .Values.exporter.pgbouncer.database }}"
+            {{- $pgbouncerBase := printf "postgres://%s:%s@%s:%v/%s" .Values.exporter.pgbouncer.user .Values.exporter.pgbouncer.password .Values.exporter.pgbouncer.host .Values.exporter.pgbouncer.port .Values.exporter.pgbouncer.database }}
+            - "--pgBouncer.connectionString={{ if .Values.exporter.pgbouncer.sslmode }}{{ printf "%s?sslmode=%s" $pgbouncerBase .Values.exporter.pgbouncer.sslmode }}{{ else }}{{ $pgbouncerBase }}{{ end }}"
             {{- else }}
-            - "--pgBouncer.connectionString=postgres://{{ .Values.exporter.pgbouncer.user }}@{{ .Values.exporter.pgbouncer.host }}:{{ .Values.exporter.pgbouncer.port }}/{{ .Values.exporter.pgbouncer.database }}"
+            {{- $pgbouncerBase := printf "postgres://%s@%s:%v/%s" .Values.exporter.pgbouncer.user .Values.exporter.pgbouncer.host .Values.exporter.pgbouncer.port .Values.exporter.pgbouncer.database }}
+            - "--pgBouncer.connectionString={{ if .Values.exporter.pgbouncer.sslmode }}{{ printf "%s?sslmode=%s" $pgbouncerBase .Values.exporter.pgbouncer.sslmode }}{{ else }}{{ $pgbouncerBase }}{{ end }}"
             {{- end }}
             {{- range .Values.exporter.extraArgs }}
             - {{ . | quote }}
